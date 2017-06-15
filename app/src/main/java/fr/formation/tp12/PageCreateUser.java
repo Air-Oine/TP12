@@ -1,14 +1,19 @@
 package fr.formation.tp12;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 
+import com.google.gson.Gson;
+
 import fr.formation.tp12.database.modele.User;
 
-public class PageCreateUser extends Principale {
+public class PageCreateUser extends AppCompatActivity {
+
+    public static final String RESULT = "result";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -24,13 +29,14 @@ public class PageCreateUser extends Principale {
             User newUser = new User();
             newUser.setNom(nameUserString);
 
-            try {
-                insertRecord(newUser);
+            //On converti l'user en JSON pour le renvoyer à l'activité parente
+            String userJson = new Gson().toJson(newUser);
 
-                finish();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            //On renvoie le user à l'activité parente
+            Intent intent = new Intent();
+            intent.putExtra(RESULT, userJson);
+            setResult(Activity.RESULT_OK, intent);
+            finish();
         }
     }
 }

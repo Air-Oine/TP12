@@ -1,5 +1,6 @@
 package fr.formation.tp12;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteException;
@@ -17,6 +18,8 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,7 +75,27 @@ public class Principale extends AppCompatActivity {
      */
     public void newUser(View view) {
         Intent intent = new Intent(Principale.this, PageCreateUser.class);
-        startActivity(intent);
+        startActivityForResult(intent, 1);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 1) {
+            if(resultCode == Activity.RESULT_OK){
+                //Récupération de l'utilisateur crée sur l'activité dédiée
+                String userJson = data.getStringExtra(PageCreateUser.RESULT);
+                User user = new Gson().fromJson(userJson, User.class);
+
+                //Insertion de l'utilisateur dans la DB
+                try {
+                    insertRecord(user);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     private void refreshListUsers() {

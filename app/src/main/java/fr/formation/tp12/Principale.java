@@ -1,16 +1,36 @@
 package fr.formation.tp12;
 
+import android.content.Context;
+import android.content.Intent;
 import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import fr.formation.tp12.database.datasource.DataSource;
 import fr.formation.tp12.database.modele.User;
 
 public class Principale extends AppCompatActivity {
+
+    List<User> users = new ArrayList<>();
+    List<String> usersList = new ArrayList<>();
+
+    RecyclerSimpleViewAdapter adapter;
 
     DataSource<User> dataSource;
 
@@ -29,55 +49,53 @@ public class Principale extends AppCompatActivity {
         // open the database
         openDB();
 
-        // Insert a new record
-        // -------------------
-        User user = new User();
-        user.setNom("Tintin");
-        try {
-            insertRecord(user);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        //Prepare adapter for RecyclerView of users
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.list_users);
 
-        // update that line
-        // ----------------
-        try {
-            user.setNom("Bidochon");
-            updateRecord(user);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        adapter = new RecyclerSimpleViewAdapter(usersList, android.R.layout.simple_list_item_1);
+        recyclerView.setAdapter(adapter);
 
-        // Query that line
-        // ---------------
-        queryTheDatabase();
-
-        // And then delete it:
-        // -------------------
-        //deleteRecord(user);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        openDB();
+
+        refreshListUsers();
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        closeDB();
+    /**
+     * On va sur la page de création d'un utilisateur
+     *
+     * @param view
+     */
+    public void newUser(View view) {
+        Intent intent = new Intent(Principale.this, PageCreateUser.class);
+        startActivity(intent);
+    }
+
+    private void refreshListUsers() {
+        users = dataSource.readAll();
+
+        usersList.clear();
+
+        for(User user : users) {
+            usersList.add(user.getNom());
+        }
+
+        adapter.notifyDataSetChanged();
     }
 
     public void openDB() throws SQLiteException {
-        dataSource.getDB();
+        dataSource.open();
     }
 
     public void closeDB() {
         dataSource.close();
     }
 
-    private long insertRecord(User user) throws Exception {
+    protected long insertRecord(User user) throws Exception {
 
         // Insert the line in the database
         long rowId = dataSource.insert(user);
